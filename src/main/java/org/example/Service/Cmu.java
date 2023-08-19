@@ -3,11 +3,12 @@ package org.example.Service;
 import jakarta.jws.WebMethod;
 import jakarta.jws.WebParam;
 import jakarta.jws.WebService;
+import org.example.Server.Consultation;
+import org.example.Server.DossierMedecin;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @WebService(serviceName = "Cmu")
 public class Cmu {
@@ -15,10 +16,10 @@ public class Cmu {
     @WebMethod(operationName = "ajouterDossier")
     public void addDossierPatient(@WebParam(name = "a")int isn, @WebParam(name = "b")String nom,@WebParam(name = "c")String prenom,
                                   @WebParam(name = "d")int numeroCmu,@WebParam(name = "e")String ville,@WebParam(name = "i")int age,
-                                  @WebParam(name = "j")boolean masculin,@WebParam(name = "k")boolean feminin) {
+                                  @WebParam(name = "j")boolean masculin,@WebParam(name = "k")boolean feminin,@WebParam(name = "k")boolean enceinte) {
         try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "");
              PreparedStatement statement = connection.prepareStatement("INSERT INTO dossierpatient (isn,nom,prenom,numeroCmu,ville," +
-                     "age,masculin,feminin) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")) {
+                     "age,masculin,feminin,enceinte) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)")) {
 
             statement.setInt(1, isn);
             statement.setString(2, nom);
@@ -28,6 +29,7 @@ public class Cmu {
             statement.setInt(6, age);
             statement.setBoolean(7, masculin);
             statement.setBoolean(8, feminin);
+            statement.setBoolean(9, enceinte);
 
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -74,5 +76,95 @@ public class Cmu {
         }
 
 
+    }
+
+        @WebMethod(operationName = "afficherDossier")
+        public List<DossierMedecin> AfficherDossier() {
+            List<DossierMedecin> dossierMedecins = new ArrayList<>();
+            try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "");
+                 Statement statement = connection.createStatement();
+                 ResultSet resultSet = statement.executeQuery("SELECT * FROM dossierpatient")) {
+
+                while (resultSet.next()) {
+                    Integer isn = resultSet.getInt("isn");
+                    String nom = resultSet.getString("nom");
+                    String prenom = resultSet.getString("prenom");
+                    Integer numeroCmu = resultSet.getInt("numeroCmu");
+                    String ville = resultSet.getString("ville");
+                    String antecedentsMedicaux = resultSet.getString("antecedentsMedicaux");
+                    String historiqueVaccination = resultSet.getString("historiqueVaccination");
+                    String resumesMedicaux = resultSet.getString("resumesMedicaux");
+                    Integer age = resultSet.getInt("age");
+                    Boolean masculin = resultSet.getBoolean("getBoolean");
+                    Boolean feminin = resultSet.getBoolean("feminin");
+                    Boolean enceinte = resultSet.getBoolean("enceinte");
+
+                    DossierMedecin dossierMedecin = new DossierMedecin(isn,nom,prenom,numeroCmu,ville,antecedentsMedicaux,historiqueVaccination,
+                            resumesMedicaux,age,masculin,feminin,enceinte);
+                    dossierMedecins.add(dossierMedecin);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            return dossierMedecins;
+        }
+
+    @WebMethod(operationName = "afficherConsultation")
+    public List<Consultation> AfficherConsultation() {
+        List<Consultation> consultations = new ArrayList<>();
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "");
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery("SELECT * FROM consultation")) {
+
+            while (resultSet.next()) {
+                String examenPhysique = resultSet.getString("examenPhysique");
+                String DiscussionSymptomes = resultSet.getString("DiscussionSymptômes");
+                String diagnostic = resultSet.getString("diagnostic");
+                String antecedentsMedicaux = resultSet.getString("antecedentsMedicaux");
+                String ordonnance = resultSet.getString("ordonnance");
+                Integer tauxReduction = resultSet.getInt("tauxReduction");
+                String code = resultSet.getString("code");
+                Integer isnDossierPatient = resultSet.getInt("isn_dossierPatient");
+
+                Consultation consultation = new Consultation(examenPhysique,DiscussionSymptomes,diagnostic,ordonnance
+                        ,tauxReduction,code,isnDossierPatient);
+                consultations.add(consultation);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return consultations;
+    }
+
+    @WebMethod(operationName = "supprimerDossier")
+    public void supprimerDossier(@WebParam(name = "a") int isn) {
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "");
+             PreparedStatement statement = connection.prepareStatement("DELETE FROM dossierpatient WHERE isn = ?")) {
+
+            statement.setInt(1, isn);
+
+            // Utilisation de executeUpdate() pour exécuter la requête DELETE
+            int rowsAffected = statement.executeUpdate();
+            supprimerConsultation(isn);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void supprimerConsultation(int isndossierPatient) {
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "");
+             PreparedStatement statement = connection.prepareStatement("DELETE FROM consultation WHERE isn_dossierPatient = ?")) {
+
+            statement.setInt(1, isndossierPatient);
+
+            // Utilisation de executeUpdate() pour exécuter la requête DELETE
+            int rowsAffected = statement.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }
