@@ -6,6 +6,7 @@ import jakarta.jws.WebService;
 import org.example.Model.Consultationn;
 import org.example.Model.DossierMedecin;
 
+import java.security.SecureRandom;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,25 +39,48 @@ public class Cmu {
     }
 
     @WebMethod(operationName = "consultation")
-    public void consultatio(@WebParam(name = "b")String examenPhysique,@WebParam(name = "c")String DiscussionSymptomes,
-                                  @WebParam(name = "d")String diagnostic,@WebParam(name = "e")String ordonnance,@WebParam(name = "i")int tauxReduction,
-                                  @WebParam(name = "j")int code,@WebParam(name = "k")int isn_dossierPatient) {
+    public int consultatio(@WebParam(name = "b")String examenPhysique, @WebParam(name = "c")String DiscussionSymptomes,
+                           @WebParam(name = "d")String diagnostic, @WebParam(name = "e")String ordonnance, @WebParam(name = "k")int isn_dossierPatient, @WebParam(name = "l")int numeroCmu) {
         try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "");
-             PreparedStatement statement = connection.prepareStatement("INSERT INTO consultation (examenPhysique,DiscussionSymptômes,diagnostic,numeroCmu,ordonnance," +
-                     "tauxReduction,code,isn_dossierPatient) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
+             PreparedStatement statement = connection.prepareStatement("INSERT INTO consultation (examenPhysique,DiscussionSymptômes,diagnostic,ordonnance," +
+                     "tauxReduction,code,isn_dossierPatient,numeroCmu) VALUES (?, ?, ?, ?, ?, ?, ?,?)")) {
+            int tauxReduction = 70;
+            String code = genererAlphanumerique(10);
+            try(PreparedStatement statemente = connection.prepareStatement("SELECT * FROM dossierpatient WHERE isn = ?");) {
+                statemente.setInt(1, isn_dossierPatient);
+                ResultSet resultSet = statemente.executeQuery();
+                if (resultSet.next()) {
+                    Integer age = resultSet.getInt("age");
+                    Boolean enceinte = resultSet.getBoolean("enceinte");
+                    Integer numeroCm = resultSet.getInt("numeroCmu");
+
+                    if (age <= 5 || enceinte) {
+                        tauxReduction = 100;
+                    }
+                    if(numeroCm != numeroCmu){
+                        return 1;
+                    }
+                }
+
+
+            }catch (SQLException e) {
+                e.printStackTrace();
+            }
 
             statement.setString(1, examenPhysique);
             statement.setString(2, DiscussionSymptomes);
             statement.setString(3, diagnostic);
             statement.setString(4, ordonnance);
             statement.setInt(5, tauxReduction);
-            statement.setInt(6, code);
+            statement.setString(6, code);
             statement.setInt(7, isn_dossierPatient);
+            statement.setInt(8, numeroCmu);
 
             statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return 0;
     }
 
     @WebMethod(operationName = "modifierdossier")
@@ -145,26 +169,57 @@ public class Cmu {
     }
 
 
+//    @WebMethod(operationName = "afficherConsultation")
+//    public List<Consultationn> AfficherConsultatio() {
+//        List<Consultationn> consultations = new ArrayList<>();
+//        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "");
+//             Statement statement = connection.createStatement();
+//             ResultSet resultSet = statement.executeQuery("SELECT * FROM consultation")) {
+//
+//            while (resultSet.next()) {
+//                String examenPhysique = resultSet.getString("examenPhysique");
+//                String DiscussionSymptomes = resultSet.getString("DiscussionSymptômes");
+//                String diagnostic = resultSet.getString("diagnostic");
+//                String antecedentsMedicaux = resultSet.getString("antecedentsMedicaux");
+//                String ordonnance = resultSet.getString("ordonnance");
+//                Integer tauxReduction = resultSet.getInt("tauxReduction");
+//                String code = resultSet.getString("code");
+//                Integer isnDossierPatient = resultSet.getInt("isn_dossierPatient");
+//
+//                Consultationn consultation = new Consultationn(examenPhysique,DiscussionSymptomes,diagnostic,ordonnance
+//                        ,tauxReduction,code,isnDossierPatient);
+//                consultations.add(consultation);
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//
+//        return consultations;
+//    }
+
     @WebMethod(operationName = "afficherConsultation")
-    public List<Consultationn> AfficherConsultatio() {
+    public List<Consultationn> AfficherConsultatio(@WebParam(name = "isn_dossierPatient") int isnDossierPatient) {
         List<Consultationn> consultations = new ArrayList<>();
         try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "");
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery("SELECT * FROM consultation")) {
+             PreparedStatement statement = connection.prepareStatement("SELECT * FROM consultation WHERE isn_dossierPatient = ?")) {
 
-            while (resultSet.next()) {
-                String examenPhysique = resultSet.getString("examenPhysique");
-                String DiscussionSymptomes = resultSet.getString("DiscussionSymptômes");
-                String diagnostic = resultSet.getString("diagnostic");
-                String antecedentsMedicaux = resultSet.getString("antecedentsMedicaux");
-                String ordonnance = resultSet.getString("ordonnance");
-                Integer tauxReduction = resultSet.getInt("tauxReduction");
-                String code = resultSet.getString("code");
-                Integer isnDossierPatient = resultSet.getInt("isn_dossierPatient");
+            statement.setInt(1, isnDossierPatient);
 
-                Consultationn consultation = new Consultationn(examenPhysique,DiscussionSymptomes,diagnostic,ordonnance
-                        ,tauxReduction,code,isnDossierPatient);
-                consultations.add(consultation);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String examenPhysique = resultSet.getString("examenPhysique");
+                    String DiscussionSymptomes = resultSet.getString("DiscussionSymptômes");
+                    String diagnostic = resultSet.getString("diagnostic");
+                    String antecedentsMedicaux = resultSet.getString("antecedentsMedicaux");
+                    String ordonnance = resultSet.getString("ordonnance");
+                    Integer tauxReduction = resultSet.getInt("tauxReduction");
+                    String code = resultSet.getString("code");
+                    Integer isnDossierPatientFromDB = resultSet.getInt("isn_dossierPatient");
+
+                    Consultationn consultation = new Consultationn(examenPhysique, DiscussionSymptomes, diagnostic, ordonnance
+                            , tauxReduction, code, isnDossierPatientFromDB);
+                    consultations.add(consultation);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -172,6 +227,7 @@ public class Cmu {
 
         return consultations;
     }
+
 
     @WebMethod(operationName = "supprimerDossier")
     public void supprimerDossie(@WebParam(name = "a") int isn) {
@@ -201,5 +257,18 @@ public class Cmu {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public String genererAlphanumerique(int longueur) {
+        SecureRandom random = new SecureRandom();
+        StringBuilder sb = new StringBuilder(longueur);
+        String CARACTERES = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+        for (int i = 0; i < longueur; i++) {
+            int index = random.nextInt(CARACTERES.length());
+            sb.append(CARACTERES.charAt(index));
+        }
+
+        return sb.toString();
     }
 }
