@@ -1,11 +1,13 @@
-package org.example.Server;
+package org.example.Model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
 @AllArgsConstructor
-public class Consultation {
+public class Consultationn implements Serializable {
 
     private String examenPhysique;
     private String discussionSymptomes;

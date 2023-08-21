@@ -3,8 +3,8 @@ package org.example.Service;
 import jakarta.jws.WebMethod;
 import jakarta.jws.WebParam;
 import jakarta.jws.WebService;
-import org.example.Server.Consultation;
-import org.example.Server.DossierMedecin;
+import org.example.Model.Consultationn;
+import org.example.Model.DossierMedecin;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -16,7 +16,7 @@ public class Cmu {
     @WebMethod(operationName = "ajouterDossier")
     public void addDossierPatient(@WebParam(name = "a")int isn, @WebParam(name = "b")String nom,@WebParam(name = "c")String prenom,
                                   @WebParam(name = "d")int numeroCmu,@WebParam(name = "e")String ville,@WebParam(name = "i")int age,
-                                  @WebParam(name = "j")boolean masculin,@WebParam(name = "k")boolean feminin,@WebParam(name = "k")boolean enceinte) {
+                                  @WebParam(name = "j")boolean masculin,@WebParam(name = "k")boolean feminin,@WebParam(name = "l")boolean enceinte) {
         try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "");
              PreparedStatement statement = connection.prepareStatement("INSERT INTO dossierpatient (isn,nom,prenom,numeroCmu,ville," +
                      "age,masculin,feminin,enceinte) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)")) {
@@ -38,7 +38,7 @@ public class Cmu {
     }
 
     @WebMethod(operationName = "consultation")
-    public void consultation(@WebParam(name = "b")String examenPhysique,@WebParam(name = "c")String DiscussionSymptomes,
+    public void consultatio(@WebParam(name = "b")String examenPhysique,@WebParam(name = "c")String DiscussionSymptomes,
                                   @WebParam(name = "d")String diagnostic,@WebParam(name = "e")String ordonnance,@WebParam(name = "i")int tauxReduction,
                                   @WebParam(name = "j")int code,@WebParam(name = "k")int isn_dossierPatient) {
         try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "");
@@ -60,7 +60,7 @@ public class Cmu {
     }
 
     @WebMethod(operationName = "modifierdossier")
-    public void modifierDossier(@WebParam(name = "d")int isn,@WebParam(name = "e")String antecedentsMedicaux,@WebParam(name = "i")String historiqueVaccination,
+    public void modifierDossie(@WebParam(name = "d")int isn,@WebParam(name = "e")String antecedentsMedicaux,@WebParam(name = "i")String historiqueVaccination,
                                 @WebParam(name = "j")String resumesMedicaux) {
         try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "");
              PreparedStatement statement = connection.prepareStatement("UPDATE dossierpatient SET antecedentsMedicaux = ?, historiqueVaccination = ?, resumesMedicaux = ? WHERE isn = ?")) {
@@ -78,41 +78,76 @@ public class Cmu {
 
     }
 
-        @WebMethod(operationName = "afficherDossier")
-        public List<DossierMedecin> AfficherDossier() {
-            List<DossierMedecin> dossierMedecins = new ArrayList<>();
-            try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "");
-                 Statement statement = connection.createStatement();
-                 ResultSet resultSet = statement.executeQuery("SELECT * FROM dossierpatient")) {
+//        @WebMethod(operationName = "afficherDossier")
+//        public List<DossierMedecin> AfficherDossie() {
+//            List<DossierMedecin> dossierMedecins = new ArrayList<>();
+//            try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "");
+//                 Statement statement = connection.createStatement();
+//                 ResultSet resultSet = statement.executeQuery("SELECT * FROM dossierpatient ")) {
+//
+//                while (resultSet.next()) {
+//                    Integer isn = resultSet.getInt("isn");
+//                    String nom = resultSet.getString("nom");
+//                    String prenom = resultSet.getString("prenom");
+//                    Integer numeroCmu = resultSet.getInt("numeroCmu");
+//                    String ville = resultSet.getString("ville");
+//                    String antecedentsMedicaux = resultSet.getString("antecedentsMedicaux");
+//                    String historiqueVaccination = resultSet.getString("historiqueVaccination");
+//                    String resumesMedicaux = resultSet.getString("resumesMedicaux");
+//                    Integer age = resultSet.getInt("age");
+//                    Boolean masculin = resultSet.getBoolean("masculin");
+//                    Boolean feminin = resultSet.getBoolean("feminin");
+//                    Boolean enceinte = resultSet.getBoolean("enceinte");
+//
+//                    DossierMedecin dossierMedecin = new DossierMedecin(isn,nom,prenom,numeroCmu,ville,antecedentsMedicaux,historiqueVaccination,
+//                            resumesMedicaux,age,masculin,feminin,enceinte);
+//                    dossierMedecins.add(dossierMedecin);
+//                }
+//            } catch (SQLException e) {
+//                e.printStackTrace();
+//            }
+//
+//            return dossierMedecins;
+//        }
 
-                while (resultSet.next()) {
-                    Integer isn = resultSet.getInt("isn");
-                    String nom = resultSet.getString("nom");
-                    String prenom = resultSet.getString("prenom");
-                    Integer numeroCmu = resultSet.getInt("numeroCmu");
-                    String ville = resultSet.getString("ville");
-                    String antecedentsMedicaux = resultSet.getString("antecedentsMedicaux");
-                    String historiqueVaccination = resultSet.getString("historiqueVaccination");
-                    String resumesMedicaux = resultSet.getString("resumesMedicaux");
-                    Integer age = resultSet.getInt("age");
-                    Boolean masculin = resultSet.getBoolean("getBoolean");
-                    Boolean feminin = resultSet.getBoolean("feminin");
-                    Boolean enceinte = resultSet.getBoolean("enceinte");
+    @WebMethod(operationName = "afficherDossier")
+    public List<DossierMedecin> AfficherDossieAPartirIsn(int isn) {
+        List<DossierMedecin> dossierMedecins = new ArrayList<>();
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "");
+             PreparedStatement statement = connection.prepareStatement("SELECT * FROM dossierpatient WHERE isn = ?");
+        ) {
+            statement.setInt(1, isn);
+            ResultSet resultSet = statement.executeQuery();
 
-                    DossierMedecin dossierMedecin = new DossierMedecin(isn,nom,prenom,numeroCmu,ville,antecedentsMedicaux,historiqueVaccination,
-                            resumesMedicaux,age,masculin,feminin,enceinte);
-                    dossierMedecins.add(dossierMedecin);
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
+            while (resultSet.next()) {
+                Integer isnValue = resultSet.getInt("isn");
+                String nom = resultSet.getString("nom");
+                String prenom = resultSet.getString("prenom");
+                Integer numeroCmu = resultSet.getInt("numeroCmu");
+                String ville = resultSet.getString("ville");
+                String antecedentsMedicaux = resultSet.getString("antecedentsMedicaux");
+                String historiqueVaccination = resultSet.getString("historiqueVaccination");
+                String resumesMedicaux = resultSet.getString("resumesMedicaux");
+                Integer age = resultSet.getInt("age");
+                Boolean masculin = resultSet.getBoolean("masculin");
+                Boolean feminin = resultSet.getBoolean("feminin");
+                Boolean enceinte = resultSet.getBoolean("enceinte");
+
+                DossierMedecin dossierMedecin = new DossierMedecin(isnValue, nom, prenom, numeroCmu, ville, antecedentsMedicaux, historiqueVaccination,
+                        resumesMedicaux, age, masculin, feminin, enceinte);
+                dossierMedecins.add(dossierMedecin);
             }
-
-            return dossierMedecins;
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
+        return dossierMedecins;
+    }
+
+
     @WebMethod(operationName = "afficherConsultation")
-    public List<Consultation> AfficherConsultation() {
-        List<Consultation> consultations = new ArrayList<>();
+    public List<Consultationn> AfficherConsultatio() {
+        List<Consultationn> consultations = new ArrayList<>();
         try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "");
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery("SELECT * FROM consultation")) {
@@ -127,7 +162,7 @@ public class Cmu {
                 String code = resultSet.getString("code");
                 Integer isnDossierPatient = resultSet.getInt("isn_dossierPatient");
 
-                Consultation consultation = new Consultation(examenPhysique,DiscussionSymptomes,diagnostic,ordonnance
+                Consultationn consultation = new Consultationn(examenPhysique,DiscussionSymptomes,diagnostic,ordonnance
                         ,tauxReduction,code,isnDossierPatient);
                 consultations.add(consultation);
             }
@@ -139,7 +174,7 @@ public class Cmu {
     }
 
     @WebMethod(operationName = "supprimerDossier")
-    public void supprimerDossier(@WebParam(name = "a") int isn) {
+    public void supprimerDossie(@WebParam(name = "a") int isn) {
         try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "");
              PreparedStatement statement = connection.prepareStatement("DELETE FROM dossierpatient WHERE isn = ?")) {
 
