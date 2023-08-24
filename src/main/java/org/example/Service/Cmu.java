@@ -170,12 +170,12 @@ public class Cmu {
 
 
 //    @WebMethod(operationName = "afficherConsultation")
-//    public List<Consultationn> AfficherConsultatio() {
+//    public List<Consultationn> AfficherConsultatio(@WebParam(name = "a") int isnDossierPatient) {
 //        List<Consultationn> consultations = new ArrayList<>();
 //        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "");
 //             Statement statement = connection.createStatement();
-//             ResultSet resultSet = statement.executeQuery("SELECT * FROM consultation")) {
-//
+//             ResultSet resultSet = statement.executeQuery("SELECT * FROM consultation WHERE isn_dossierPatient = ?")) {
+//              statement.setInt(1, isnDossierPatient);
 //            while (resultSet.next()) {
 //                String examenPhysique = resultSet.getString("examenPhysique");
 //                String DiscussionSymptomes = resultSet.getString("DiscussionSymptômes");
@@ -198,7 +198,7 @@ public class Cmu {
 //    }
 
     @WebMethod(operationName = "afficherConsultation")
-    public List<Consultationn> AfficherConsultatio(@WebParam(name = "isn_dossierPatient") int isnDossierPatient) {
+    public List<Consultationn> AfficherConsultatio(@WebParam(name = "a") int isnDossierPatient) {
         List<Consultationn> consultations = new ArrayList<>();
         try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "");
              PreparedStatement statement = connection.prepareStatement("SELECT * FROM consultation WHERE isn_dossierPatient = ?")) {
@@ -210,7 +210,6 @@ public class Cmu {
                     String examenPhysique = resultSet.getString("examenPhysique");
                     String DiscussionSymptomes = resultSet.getString("DiscussionSymptômes");
                     String diagnostic = resultSet.getString("diagnostic");
-                    String antecedentsMedicaux = resultSet.getString("antecedentsMedicaux");
                     String ordonnance = resultSet.getString("ordonnance");
                     Integer tauxReduction = resultSet.getInt("tauxReduction");
                     String code = resultSet.getString("code");
