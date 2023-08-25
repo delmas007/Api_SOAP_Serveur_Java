@@ -4,7 +4,7 @@ import jakarta.xml.ws.Endpoint;
 import org.example.Service.Cmu;
 
 public class ServerCmu {
-    public static void main(String[] args){
+    public static void main(String[] args){ 
         String url = "http://localhost:8084/";
 
         try {

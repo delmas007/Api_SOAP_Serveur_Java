@@ -129,7 +129,7 @@ public class Cmu {
 
 
     @WebMethod(operationName = "afficherDossier")
-    public List<DossierMedecin> AfficherDossieAPartirIsn(int isn) {
+    public List<DossierMedecin> AfficherDossieAPartirIsn(@WebParam(name = "d") int isn) {
         List<DossierMedecin> dossierMedecins = new ArrayList<>();
         try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "");
              PreparedStatement statement = connection.prepareStatement("SELECT * FROM dossierpatient WHERE isn = ?");
@@ -252,7 +252,8 @@ public class Cmu {
 //        }
 //    }
 
-    public int supprimerDossierPatientEtConsultations(int isnDossierPatient) {
+    @WebMethod(operationName = "supprimerDossierPatientEtConsultations")
+    public int supprimerDossierPatientEtConsultations(@WebParam(name = "a") int isnDossierPatient) {
         try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "")) {
 
             Integer isnn = null;
@@ -286,6 +287,71 @@ public class Cmu {
             e.printStackTrace();
         }
         return 1;
+    }
+
+    @WebMethod(operationName = "authentification")
+    public int authentification(@WebParam(name = "d") int code) {
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "")) {
+
+            Integer isnn = null;
+            boolean medecin = false;
+            try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM utilisateur WHERE code = ?")) {
+                statement.setInt(1, code);
+
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        isnn = resultSet.getInt("code");
+                        medecin = resultSet.getBoolean("medecin");
+                        System.out.println("medecin "+medecin);
+
+                    }
+                    if(isnn != null && medecin){
+                        return 1;
+                    }
+
+
+                }
+            }
+
+            Integer cod = null;
+            boolean employerCmu = false;
+            try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM utilisateur WHERE code = ?")) {
+                statement.setInt(1, code);
+
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        cod = resultSet.getInt("code");
+                         employerCmu = resultSet.getBoolean("employerCmu");
+                        System.out.println("employerCmu "+employerCmu);
+                    }
+
+                    if(cod != null && employerCmu){
+                        return 2;
+                    }
+
+                }
+            }
+
+            Integer codee = null;
+            try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM consultation WHERE isn_dossierPatient = ?")) {
+                statement.setInt(1, code);
+
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        codee = resultSet.getInt("isn_dossierPatient");
+
+                    }
+                    if(codee != null ){
+                        return codee;
+                    }
+
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 3;
     }
 
 
