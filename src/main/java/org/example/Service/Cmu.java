@@ -163,33 +163,6 @@ public class Cmu {
     }
 
 
-//    @WebMethod(operationName = "afficherConsultation")
-//    public List<Consultationn> AfficherConsultatio(@WebParam(name = "a") int isnDossierPatient) {
-//        List<Consultationn> consultations = new ArrayList<>();
-//        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "");
-//             Statement statement = connection.createStatement();
-//             ResultSet resultSet = statement.executeQuery("SELECT * FROM consultation WHERE isn_dossierPatient = ?")) {
-//              statement.setInt(1, isnDossierPatient);
-//            while (resultSet.next()) {
-//                String examenPhysique = resultSet.getString("examenPhysique");
-//                String DiscussionSymptomes = resultSet.getString("DiscussionSymptômes");
-//                String diagnostic = resultSet.getString("diagnostic");
-//                String antecedentsMedicaux = resultSet.getString("antecedentsMedicaux");
-//                String ordonnance = resultSet.getString("ordonnance");
-//                Integer tauxReduction = resultSet.getInt("tauxReduction");
-//                String code = resultSet.getString("code");
-//                Integer isnDossierPatient = resultSet.getInt("isn_dossierPatient");
-//
-//                Consultationn consultation = new Consultationn(examenPhysique,DiscussionSymptomes,diagnostic,ordonnance
-//                        ,tauxReduction,code,isnDossierPatient);
-//                consultations.add(consultation);
-//            }
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-//
-//        return consultations;
-//    }
 
     @WebMethod(operationName = "afficherConsultation")
     public List<Consultationn> AfficherConsultatio(@WebParam(name = "a") int isnDossierPatient) {
@@ -222,36 +195,6 @@ public class Cmu {
     }
 
 
-//    @WebMethod(operationName = "supprimerDossier")
-//    public void supprimerDossie(@WebParam(name = "a") int isn) {
-//        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "");
-//             PreparedStatement statement = connection.prepareStatement("DELETE FROM dossierpatient WHERE isn = ?")) {
-//
-//            statement.setInt(1, isn);
-//
-//            // Utilisation de executeUpdate() pour exécuter la requête DELETE
-//            int rowsAffected = statement.executeUpdate();
-//            supprimerConsultation(isn);
-//
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-//    }
-
-//    public void supprimerConsultation(int isndossierPatient) {
-//        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "");
-//             PreparedStatement statement = connection.prepareStatement("DELETE FROM consultation WHERE isn_dossierPatient = ?")) {
-//
-//            statement.setInt(1, isndossierPatient);
-//
-//            // Utilisation de executeUpdate() pour exécuter la requête DELETE
-//            int rowsAffected = statement.executeUpdate();
-//
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-//    }
-
     @WebMethod(operationName = "supprimerDossierPatientEtConsultations")
     public int supprimerDossierPatientEtConsultations(@WebParam(name = "a") int isnDossierPatient) {
         try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/cmu", "root", "")) {
@@ -269,15 +212,30 @@ public class Cmu {
                 }
             }
             if (isnn != null){
-                // Supprimer les consultations associées
                 try (PreparedStatement deleteConsultations = connection.prepareStatement("DELETE FROM consultation WHERE isn_dossierPatient = ?")) {
                     deleteConsultations.setInt(1, isnDossierPatient);
                     deleteConsultations.executeUpdate();
                 }
             }
 
+            Integer isnne = null;
+            try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM dossierpatient WHERE isn = ?")) {
+                statement.setInt(1, isnDossierPatient);
 
-            // Supprimer l'entrée du dossier patient
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        isnne = resultSet.getInt("isn");
+
+                    }
+                    if(isnne == null){
+                        return 0;
+                    }
+
+                }
+            }
+
+
+
             try (PreparedStatement deleteDossierPatient = connection.prepareStatement("DELETE FROM dossierpatient WHERE isn = ?")) {
                 deleteDossierPatient.setInt(1, isnDossierPatient);
                 deleteDossierPatient.executeUpdate();
@@ -302,7 +260,6 @@ public class Cmu {
                     while (resultSet.next()) {
                         isnn = resultSet.getInt("code");
                         medecin = resultSet.getBoolean("medecin");
-                        System.out.println("medecin "+medecin);
 
                     }
                     if(isnn != null && medecin){
@@ -322,7 +279,6 @@ public class Cmu {
                     while (resultSet.next()) {
                         cod = resultSet.getInt("code");
                          employerCmu = resultSet.getBoolean("employerCmu");
-                        System.out.println("employerCmu "+employerCmu);
                     }
 
                     if(cod != null && employerCmu){
